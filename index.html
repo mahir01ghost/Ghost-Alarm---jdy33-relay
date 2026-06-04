@@ -15,9 +15,9 @@ padding:20px 40px;
 margin:20px;
 }
 #status{
-font-size:40px;
-margin:30px;
+font-size:48px;
 font-weight:bold;
+margin:30px;
 }
 </style>
 </head>
@@ -31,37 +31,42 @@ Connect
 Toggle
 
 <script>
-let characteristic=null;
-let relayOn=false;
+let characteristic = null;
+let relayOn = false;
 function hexToBytes(hex){
-const bytes=new Uint8Array(hex.length/2);
+const bytes = new Uint8Array(hex.length/2);
 for(let i=0;i<bytes.length;i++){
 bytes[i]=parseInt(hex.substr(i*2,2),16);
 }
 return bytes;
 }
 async function connect(){
-const device=await navigator.bluetooth.requestDevice({
-filters:[{services:['ffe0']}]
+try{
+const device = await navigator.bluetooth.requestDevice({
+acceptAllDevices:true,
+optionalServices:['ffe0']
 });
-const server=await device.gatt.connect();
-const service=await server.getPrimaryService('ffe0');
-characteristic=await service.getCharacteristic('ffe1');
-alert('Connected to JDY-33');
+const server = await device.gatt.connect();
+const service = await server.getPrimaryService('ffe0');
+characteristic = await service.getCharacteristic('ffe1');
+alert('Connected to ' + device.name);
+}catch(err){
+alert(err);
+}
 }
 async function toggleRelay(){
 if(!characteristic){
 alert('Connect first');
 return;
 }
-const cmd=relayOn
+const cmd = relayOn
 ? 'A00100A1'
 : 'A00101A2';
 await characteristic.writeValue(
 hexToBytes(cmd)
 );
-relayOn=!relayOn;
-document.getElementById('status').innerText=
+relayOn = !relayOn;
+document.getElementById('status').innerText =
 relayOn ? 'ON' : 'OFF';
 }
 </script>
